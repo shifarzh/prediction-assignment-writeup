@@ -1,0 +1,68 @@
+
+---
+title: "Prediction Assignment Writeup"
+author: "Shifa Rizkillah Hidayat"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1. Introduction
+
+This report documents the process of building a machine learning model to predict how subjects performed barbell lifts using sensor data. The variable to predict is `classe`.
+
+## 2. Loading and Cleaning the Data
+
+```{r load-libraries}
+library(caret)
+library(randomForest)
+library(e1071)
+library(dplyr)
+set.seed(1234)
+```
+
+```{r load-data}
+training <- read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv", na.strings=c("NA", "", "#DIV/0!"))
+testing  <- read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv", na.strings=c("NA", "", "#DIV/0!"))
+```
+
+```{r clean-data}
+training <- training[, colMeans(!is.na(training)) > 0.95]
+training <- training[, -c(1:7)]
+testing <- testing[, names(testing) %in% names(training)]
+```
+
+## 3. Partitioning the Data
+
+```{r partition}
+inTrain <- createDataPartition(training$classe, p = 0.7, list = FALSE)
+trainSet <- training[inTrain, ]
+testSet <- training[-inTrain, ]
+```
+
+## 4. Model Building - Random Forest
+
+```{r train-model}
+control <- trainControl(method = "cv", number = 5)
+model_rf <- train(classe ~ ., data = trainSet, method = "rf", trControl = control)
+```
+
+## 5. Model Evaluation
+
+```{r evaluate-model}
+predictions <- predict(model_rf, testSet)
+confusionMatrix(predictions, testSet$classe)
+```
+
+## 6. Final Prediction on Test Set
+
+```{r final-prediction}
+final_predictions <- predict(model_rf, testing)
+final_predictions
+```
+
+## 7. Conclusion
+
+We used a Random Forest model due to its robustness and accuracy in high-dimensional classification tasks. Cross-validation and data cleaning were applied to ensure the model generalizes well to new data.
