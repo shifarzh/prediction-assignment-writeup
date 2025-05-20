@@ -1,0 +1,94 @@
+
+---
+title: "Prediction Assignment Writeup"
+author: "Shifa Rizkillah Hidayat"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# 1. Deskripsi Pemrosesan Data
+
+Pada proyek ini, data yang digunakan berasal dari sensor accelerometer yang dipasang pada beberapa posisi tubuh peserta yang melakukan berbagai jenis angkatan barbel secara benar maupun salah. Data awal memiliki banyak fitur, beberapa kolom memiliki nilai kosong dan beberapa kolom merupakan data identitas yang tidak relevan untuk analisis prediksi.
+
+Untuk memastikan kualitas data yang baik, proses pembersihan dan seleksi data dilakukan dengan langkah-langkah sebagai berikut:
+
+- Menghapus kolom yang memiliki banyak nilai kosong (`NA`) atau nilai konstan (near zero variance), karena kolom tersebut tidak memberikan informasi yang berguna bagi model.
+- Menghapus kolom identitas seperti kolom `X`, `user_name`, dan beberapa kolom timestamp yang tidak berkontribusi terhadap prediksi.
+- Menghapus baris yang mengandung nilai kosong untuk memastikan data yang bersih.
+- Membagi data yang sudah bersih menjadi data pelatihan dan data validasi dengan perbandingan 70:30 secara acak, untuk membangun dan mengevaluasi model.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(caret)
+library(randomForest)
+```
+
+```{r load-data}
+# Mengunduh data training dan testing
+train_url <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+test_url <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+
+train <- read.csv(url(train_url), na.strings=c("NA","#DIV/0!",""))
+test <- read.csv(url(test_url), na.strings=c("NA","#DIV/0!",""))
+```
+
+```{r preprocess-data}
+# Menghapus kolom dengan variansi sangat rendah
+nzv <- nearZeroVar(train)
+train <- train[, -nzv]
+
+# Menghapus kolom identitas dan timestamp yang tidak relevan
+drop_cols <- c("X", "user_name", "raw_timestamp_part_1", "raw_timestamp_part_2", "cvtd_timestamp")
+train <- train[, !(names(train) %in% drop_cols)]
+
+# Menghapus kolom dengan banyak NA
+train <- train[, colSums(is.na(train)) == 0]
+
+# Membagi data training ke dalam training dan validation set
+set.seed(123)
+inTrain <- createDataPartition(train$classe, p = 0.7, list = FALSE)
+training <- train[inTrain, ]
+validation <- train[-inTrain, ]
+```
+
+# 2. Pemilihan dan Pembuatan Model
+
+Model yang dipilih adalah **Random Forest**, karena model ini dikenal memiliki akurasi tinggi, stabil terhadap noise, dan dapat menangani banyak fitur tanpa membutuhkan banyak preprocessing.
+
+```{r model-training}
+control <- trainControl(method = "cv", number = 5)
+model_rf <- train(classe ~ ., data = training, method = "rf", trControl = control)
+```
+
+# 3. Evaluasi Model dan Perkiraan Out-of-Sample Error
+
+Setelah model dibangun, selanjutnya dilakukan prediksi pada data validasi. Hasil prediksi dievaluasi menggunakan confusion matrix untuk mengetahui akurasi dan error.
+
+```{r evaluate-model}
+predictions <- predict(model_rf, validation)
+confusion <- confusionMatrix(predictions, validation$classe)
+confusion
+```
+
+Perkiraan **out-of-sample error** adalah:
+
+```{r out-of-sample-error}
+1 - confusion$overall["Accuracy"]
+```
+
+# 4. Prediksi Terhadap 20 Test Cases
+
+Model digunakan untuk memprediksi 20 kasus uji yang disediakan. Pastikan kolom test data cocok dengan training data.
+
+```{r final-predictions}
+# Sinkronisasi kolom
+final_test <- test[, names(training)[names(training) != "classe"]]
+
+# Prediksi
+final_predictions <- predict(model_rf, final_test)
+final_predictions
+```
+
+# 5. Kesimpulan
+
+Model Random Forest memberikan akurasi yang tinggi dan cocok digunakan pada data dengan banyak fitur dan potensi noise. Prediksi terhadap 20 test case berhasil dilakukan dan hasilnya dapat disalin ke submission quiz.
