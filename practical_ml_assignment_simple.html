@@ -1,0 +1,46 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Practical Machine Learning: Prediction Assignment Writeup</title>
+</head>
+<body>
+
+<h1>Practical Machine Learning: Prediction Assignment Writeup</h1>
+<p><em>Author: Shifa Rizkillah Hidayat</em></p>
+<p><strong>Date:</strong> 2025-05-22</p>
+
+<h2>Introduction</h2>
+<p>This project aims to predict how participants performed barbell lifts using accelerometer data collected from six individuals wearing sensors on the belt, forearm, arm, and dumbbell. The target variable is <strong>classe</strong>, which categorizes five different ways the barbell lifts were executed (correctly or incorrectly).</p>
+<p>The data source is the Weight Lifting Exercise Dataset from the <a href="http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har">PUC-Rio Groupware site</a>.</p>
+
+<h2>Data Loading and Preprocessing</h2>
+<p>The training and test datasets were loaded from Coursera’s provided URLs. Initial data cleaning involved removing variables with a large proportion of missing values (over 95%), eliminating identifiers and near-zero variance predictors to reduce noise and improve model performance.</p>
+
+<h2>Data Partitioning</h2>
+<p>To evaluate model performance, the cleaned data was split into training (70%) and validation (30%) subsets using stratified sampling on the outcome variable.</p>
+
+<h2>Model Building: Random Forest</h2>
+<p>Random Forest was chosen for its high accuracy and ability to handle many predictor variables without overfitting easily. Five-fold cross-validation was used to estimate out-of-sample error.</p>
+
+<h2>Model Performance on Validation Set</h2>
+<p>The model’s accuracy and confusion matrix on the validation set were examined to assess performance.</p>
+
+<h2>Final Predictions on Test Data</h2>
+<p>The test set was loaded and cleaned by selecting only the columns used in training, excluding the target variable. The final model was used to predict the exercise class for each of the 20 test cases.</p>
+
+<h2>Save Predictions to Files for Submission</h2>
+<p>The following function saves each of the 20 predictions as individual text files named <code>problem_id_1.txt</code>, <code>problem_id_2.txt</code>, ..., inside a folder called <code>predictions</code>.</p>
+
+<h2>Cross-Validation and Expected Out-of-Sample Error</h2>
+<p>Using 5-fold cross-validation during training provides a robust estimate of the model's expected performance on new, unseen data, helping to prevent overfitting. The validation set accuracy corroborates this estimate.</p>
+
+<h2>Conclusion</h2>
+<p>The Random Forest model, combined with careful data cleaning and cross-validation, produced highly accurate predictions for the exercise classification task. The predictions on the test set have been saved in separate files ready for submission.</p>
+
+<hr>
+<p><em>Report submitted by Shifa Rizkillah Hidayat on 2025-05-22</em></p>
+
+</body>
+</html>
